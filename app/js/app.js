@@ -22,7 +22,7 @@ function Level() {
 	  var oy  = (dy + i) * size,
 		  row = oy < 0 ? [] : args.slice(dx < 0 ? oy + Math.abs(dx) : oy + dx, Math.min(oy + dx + length, oy + size));
 
-	  if (dx < 0) row = args.slice(oy, oy + length + dx);
+	  if (oy >= 0 && dx < 0) row = args.slice(oy, oy + length + dx);
 
 	  while (row.length < length) dx < 0 ? row.unshift(0) : row.push(0);
 

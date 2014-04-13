@@ -15,15 +15,13 @@
 	 data-ng-keydown="onKeyDown($event)"
      data-ng-keyup="onKeyUp()">
   <div id="container">
+    <div id="horizon"></div>
     <div id="stage"
 	  data-ng-style="getDirection()"
 	  data-ng-class="{ 'transition': transition }">
       <div class="tile"
-	       data-ng-repeat="tile in tiles track by $index"
-		   data-ng-class="{ 'tile_type_empty': tile === 0 }">
-		<div class="tile__ceil"></div>
-		<div class="tile__floor"></div>
-		<div class="tile__side tile__side_type_{{ side }}" data-ng-repeat="side in getSides($index) track by $index"></div>
+	       data-ng-repeat="tile in tiles track by $index">
+		<div class="tile__side tile__side_type_{{ side }}" data-ng-repeat="side in getSides($index)"></div>
 	  </div>
     </div>​
   </div>

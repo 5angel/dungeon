@@ -14,16 +14,13 @@ function Level() {
   this.getValues = function (x, y, pov) {
     var length = (pov * 2) + 1,
 	    dx = x - pov,
-		dy = y - pov,
-        total  = length * length,
 	    values = [];
 
 	for (var i = 0; i < length; ++i) {
-	  var oy  = (dy + i) * size,
+	  var oy  = (y - pov + i) * size,
 		  row = oy < 0 ? [] : args.slice(dx < 0 ? oy + Math.abs(dx) : oy + dx, Math.min(oy + dx + length, oy + size));
 
 	  if (oy >= 0 && dx < 0) row = args.slice(oy, oy + length + dx);
-
 	  while (row.length < length) dx < 0 ? row.unshift(0) : row.push(0);
 
 	  values = row.concat(values);
@@ -37,17 +34,17 @@ function Level() {
 
 app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
   var level = new Level(
-    2,1,1,1,1,1,1,1,1,1,2,1,2,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,1,2,1,1,1,1,1,2,1,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,1,1,1,1,1,1,1,1,1,1,1,2,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,1,1,1,1,2,1,1,1,1,1,1,2,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,1,2,1,1,1,1,1,2,1,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,1,1,1,1,2,1,1,1,1,2,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,2,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1
   );
@@ -72,11 +69,19 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
   $scope.tiles = updateValues();
 
   $scope.getSides = function ($index) {
-    var value = $scope.tiles[$index];
+    var value  = $scope.tiles[$index],
+	    length = (pov * 2) + 1,
+		tx = $index % length,
+		ty = Math.floor($index / length),
+		sides = [];
+	//console.log(tx, ty);
 
 	switch (value) {
-	  case 2: return [0,1,2,3];
+	  case 2: sides.push('front', 'right', 'back', 'left'); break;
+	  case 1: sides.push('floor', 'ceil'); break;
 	}
+
+	return sides;
   };
 
   $scope.getDirection = function () {
@@ -94,15 +99,13 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
   };
 
   $scope.onKeyDown = function ($event) {
+    var moving = false;
+
     if (!keysLocked && !timeLocked) {
       keysLocked = true;
 
 	  if (KEYS.indexOf($event.keyCode) !== -1) {
-	    $scope.transition = true;
-
 	    timeLocked = true;
-
-        var invert = $event.keyCode === 83;		
 
         switch ($event.keyCode) {
           case 65:
@@ -116,27 +119,50 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
 		    if (turnDelta< 0) turnDelta = 3;
 		    break;
 		  default:
-		    switch (turnDelta) {
-		      case 0: invert ? stepY-- : stepY++; break;
-		      case 1: invert ? stepX++ : stepX--; break;
-		      case 2: invert ? stepY++ : stepY--; break;
-			  case 3: invert ? stepX-- : stepX++; break;
-		    }
+		    var k = event.keyCode === 83 ? -1 : 1;
+
+			moving = true;
+
+			if (turnDelta % 2 === 0) !turnDelta ? stepY += k : stepY -= k;
+			else turnDelta === 1 ? stepX -= k : stepX += k;
+
 		    break;
         }
 
-		if (level.valueAt(localX + stepX, localY + stepY) === 1) {
-		  $timeout(function () {
-		    localX += stepX;
+		if (moving && level.valueAt(localX + stepX, localY + stepY) === 1) {
+		  if (event.keyCode === 87) {
+            localX += stepX;
 		    localY += stepY;
-
-		    stepX = stepY = 0;
-		    $scope.transition = timeLocked = false;
+		    stepX *= -1;
+		    stepY *= -1;
 		    $scope.tiles = updateValues();
-		  }, 500);
+
+			// delay animation to update tiles
+		    $timeout(function () {
+		      $scope.transition = true;
+		      stepX = stepY = 0;
+
+			  $timeout(function () { $scope.transition = timeLocked = false; }, 500);
+		    }, 40);
+		  } else {
+		    $scope.transition = true;
+
+            $timeout(function () {
+		      localX += stepX;
+		      localY += stepY;
+
+		      stepX = stepY = 0;
+		      $scope.transition = timeLocked = false;
+		      $scope.tiles = updateValues();
+		    }, 500);
+		  }
+		} else if (!moving) {
+		  $scope.transition = true;
+
+		  $timeout(function () { $scope.transition = timeLocked = false; }, 500);
 		} else {
+		  timeLocked = false;
 		  stepX = stepY = 0;
-		  $scope.transition = timeLocked = false;
 		}
 	  }
 	}

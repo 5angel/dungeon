@@ -1,0 +1,90 @@
+@import 'mixins';
+
+body { background-color: black; }
+
+@size: 74px;
+@width: 814px;
+@height: 600px;
+
+#screen {
+  overflow: hidden;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: @width;
+  height: @height;
+  margin-top: -@height / 2;
+  margin-left: -@width / 2;
+  outline: 0;
+  background-color: black;
+  .perspective(440px);
+}
+
+#container, #stage {
+  .transform-style(preserve-3d);
+}
+
+#container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: @size / 2;
+  margin-left: -(@size * 11) / 2;
+  .transform(rotateX(90deg));
+  .transform-origin(100% 0);
+}
+
+#stage {
+  width: @size * 11;
+  height: @size * 11;
+
+  &.transition {
+    .transition(all 500ms ease);
+  }
+}
+
+.tile {
+  display: inline-block;
+  position: relative;
+  width: @size;
+  height: @size;
+  vertical-align: top;
+
+  &.tile_type_empty > .tile__ceil, &.tile_type_empty > .tile__floor {
+    background-image: none;
+  }
+}
+
+.tile__ceil, .tile__floor, .tile__side {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../i/tile.png');
+}
+
+.tile__side {
+  .transform-origin(100% 0);
+
+  &.tile__side.tile__side_type_0 {
+    .transform(rotateY(90deg));
+  }
+
+  &.tile__side.tile__side_type_1 {
+    .transform(rotateX(90deg) translateY(@size) scaleY(-1));
+  }
+
+  &.tile__side.tile__side_type_2 {
+    .transform(rotateY(90deg) translateY(@size) translateZ(-@size) scaleY(-1));
+  }
+
+  &.tile__side.tile__side_type_3 {
+    .transform(rotateX(90deg) translateY(@size) translateZ(-@size) scaleY(-1));
+  }
+}
+
+.tile__floor {
+  .transform(translateZ(@size));
+  .transform-origin(100% 0);
+}

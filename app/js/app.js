@@ -98,6 +98,10 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
 	};
   };
 
+  $scope.getLightness = function ($index) {
+    return 0;
+  };
+
   $scope.onKeyDown = function ($event) {
     var moving = false;
 

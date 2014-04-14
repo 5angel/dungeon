@@ -37,11 +37,11 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,2,1,2,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,2,1,2,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
-	1,1,1,1,1,1,2,1,1,1,1,1,1,
-	1,1,1,1,1,1,1,1,1,1,1,1,1,
-	1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,2,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -62,7 +62,9 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
 	  stepY = 0,
 	  pov = 5;
 
-  $scope.transition = false;
+  var lighten = false;
+
+  $scope.transition = $scope.rotation = false;
   
   function updateValues() { return level.getValues(localX, localY, pov); };
 
@@ -99,7 +101,8 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
   };
 
   $scope.getLightness = function ($index) {
-    return 0;
+    var length = (pov * 2) + 1;
+	return Math.min(5 - Math.abs(($index % length) - 5), 5 - Math.abs(Math.floor($index / length) - 5));
   };
 
   $scope.onKeyDown = function ($event) {
@@ -130,43 +133,43 @@ app.controller('GameCtrl', ['$scope', '$timeout', function ($scope, $timeout) {
 			if (turnDelta % 2 === 0) !turnDelta ? stepY += k : stepY -= k;
 			else turnDelta === 1 ? stepX -= k : stepX += k;
 
+			if (level.valueAt(localX + stepX, localY + stepY) === 1) {
+              localX += stepX;
+              localY += stepY;
+
+		      if (event.keyCode === 87) {
+                stepX *= -1;
+                stepY *= -1;
+                $scope.tiles = updateValues();
+
+                // delay animation to update tiles
+                $timeout(function () {
+                  $scope.transition = true;
+                  stepX = stepY = 0;
+
+                  $timeout(function () { $scope.transition = timeLocked = false; }, 500);
+                }, 40);
+              } else {
+                $scope.transition = true;
+
+                $timeout(function () {
+                  stepX = stepY = 0;
+                  $scope.transition = timeLocked = false;
+                  $scope.tiles = updateValues();
+                }, 500);
+              }
+			} else {
+			  timeLocked = false;
+		      stepX = stepY = 0;
+			}
+
 		    break;
         }
 
-		if (moving && level.valueAt(localX + stepX, localY + stepY) === 1) {
-		  if (event.keyCode === 87) {
-            localX += stepX;
-		    localY += stepY;
-		    stepX *= -1;
-		    stepY *= -1;
-		    $scope.tiles = updateValues();
+		if (!moving) {
+		  $scope.transition = $scope.rotation = true;
 
-			// delay animation to update tiles
-		    $timeout(function () {
-		      $scope.transition = true;
-		      stepX = stepY = 0;
-
-			  $timeout(function () { $scope.transition = timeLocked = false; }, 500);
-		    }, 40);
-		  } else {
-		    $scope.transition = true;
-
-            $timeout(function () {
-		      localX += stepX;
-		      localY += stepY;
-
-		      stepX = stepY = 0;
-		      $scope.transition = timeLocked = false;
-		      $scope.tiles = updateValues();
-		    }, 500);
-		  }
-		} else if (!moving) {
-		  $scope.transition = true;
-
-		  $timeout(function () { $scope.transition = timeLocked = false; }, 500);
-		} else {
-		  timeLocked = false;
-		  stepX = stepY = 0;
+		  $timeout(function () { $scope.transition = $scope.rotation = timeLocked = false; }, 500);
 		}
 	  }
 	}

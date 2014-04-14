@@ -15,11 +15,11 @@
 	 data-ng-keydown="onKeyDown($event)"
      data-ng-keyup="onKeyUp()">
   <div id="container">
-    <div id="horizon"></div>
+    <div id="horizon" data-ng-hide="rotation"></div>
     <div id="stage"
 	  data-ng-style="getDirection()"
 	  data-ng-class="{ 'transition': transition }">
-      <div class="tile"
+      <div class="tile tile_lightness_{{ getLightness($index) }}"
 	       data-ng-repeat="tile in tiles track by $index">
 		<div class="tile__side tile__side_type_{{ side }}" data-ng-repeat="side in getSides($index)"></div>
 	  </div>
